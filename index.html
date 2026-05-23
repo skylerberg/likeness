@@ -56,6 +56,10 @@
 
       <div class="score-row">
         <span class="score-pill"><span id="step-count">0</span> step<span id="step-plural">s</span></span>
+        <div class="history-controls">
+          <button id="undo-btn" class="ghost-btn icon-btn" type="button" aria-label="Undo last move" disabled><span aria-hidden="true">↶</span> Undo</button>
+          <button id="redo-btn" class="ghost-btn icon-btn" type="button" aria-label="Redo move" disabled>Redo <span aria-hidden="true">↷</span></button>
+        </div>
         <button id="give-up-btn" class="link-btn" type="button">Give up</button>
       </div>
     </section>
@@ -85,7 +89,7 @@
           <li><b>🔄 Synonym</b> — swap to a word that means the same thing.</li>
           <li><b>🔊 Homophone</b> — swap to a word that sounds the same.</li>
         </ul>
-        <p>Stuck? <b>Tap any word in your journey</b> to step back to it — your full chain stays visible, dimmed, until you submit a new word, which replaces the ghosted part.</p>
+        <p>Stuck? Use <b>↶ Undo</b> and <b>↷ Redo</b> to step back and forth through your chain — the full journey stays visible (dimmed past the point you're at) until you submit a new word, which replaces the rest.</p>
         <p>When you reach the target, share your chain — and the next player picks up where you left off.</p>
         <p class="muted">Synonym and homophone judgements come from the <a href="https://www.datamuse.com/api/" rel="noopener" target="_blank">Datamuse</a> word API and may be liberal: if it groups them, the game accepts them.</p>
         <form method="dialog"><button class="ghost-btn" type="submit">Got it</button></form>

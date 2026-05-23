@@ -28,6 +28,8 @@
     status: $('status'),
     stepCount: $('step-count'),
     stepPlural: $('step-plural'),
+    undoBtn: $('undo-btn'),
+    redoBtn: $('redo-btn'),
     giveUpBtn: $('give-up-btn'),
     howToBtn: $('how-to-btn'),
     newGameBtn: $('new-game-btn'),
@@ -235,23 +237,6 @@
       li.appendChild(emoji);
       li.appendChild(word);
       li.appendChild(tag);
-
-      if (!isAtCursor) {
-        li.classList.add('is-rewindable');
-        li.tabIndex = 0;
-        li.setAttribute('role', 'button');
-        li.title = isGhost
-          ? `Step forward to ${up(entry.word)}`
-          : `Step back to ${up(entry.word)}`;
-        li.addEventListener('click', () => setCursor(i));
-        li.addEventListener('keydown', (e) => {
-          if (e.key === 'Enter' || e.key === ' ') {
-            e.preventDefault();
-            setCursor(i);
-          }
-        });
-      }
-
       els.history.appendChild(li);
     });
     els.history.parentElement.scrollTop = els.history.parentElement.scrollHeight;
@@ -259,6 +244,7 @@
 
   function setCursor(i) {
     if (submitting) return;
+    if (i < 0 || i > state.history.length) return;
     if (i === state.cursor) return;
     state.cursor = i;
     const atTarget = state.cursor > 0 && currentWord() === state.target;
@@ -270,6 +256,7 @@
       els.moveSubmit.disabled = true;
       renderHistory();
       renderCounters();
+      renderUndoRedo();
       renderWin();
     } else {
       els.moveInput.disabled = false;
@@ -277,15 +264,24 @@
       els.winCard.classList.add('hidden');
       renderHistory();
       renderCounters();
+      renderUndoRedo();
       setStatus(`Now at ${up(currentWord())}. Submit to take a new path.`, 'info');
       els.moveInput.focus();
     }
   }
 
+  function undo() { setCursor(state.cursor - 1); }
+  function redo() { setCursor(state.cursor + 1); }
+
   function renderCounters() {
     const steps = liveHistory().length;
     els.stepCount.textContent = String(steps);
     els.stepPlural.textContent = steps === 1 ? '' : 's';
+  }
+
+  function renderUndoRedo() {
+    els.undoBtn.disabled = state.cursor === 0;
+    els.redoBtn.disabled = state.cursor === state.history.length;
   }
 
   // The cursor points into the items array [start, ...history]. cursor === 0
@@ -413,6 +409,7 @@
     setStatus(`${MOVE[type].emoji} ${MOVE[type].label}`, 'success');
     renderHistory();
     renderCounters();
+    renderUndoRedo();
 
     submitting = false;
     if (next === state.target) {
@@ -522,6 +519,7 @@
     renderEndpoints();
     renderHistory();
     renderCounters();
+    renderUndoRedo();
 
     if (state.won) {
       els.moveInput.disabled = true;
@@ -558,6 +556,9 @@
       e.preventDefault();
       submitMove(els.moveInput.value);
     });
+
+    els.undoBtn.addEventListener('click', undo);
+    els.redoBtn.addEventListener('click', redo);
 
     els.giveUpBtn.addEventListener('click', () => {
       if (state.won) return;
