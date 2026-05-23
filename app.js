@@ -195,11 +195,13 @@
     const items = [{ word: state.start, type: 'start' }, ...state.history];
     items.forEach((entry, i) => {
       const li = document.createElement('li');
-      const isLast = i === items.length - 1;
-      const reachedTarget = state.won && isLast;
-      li.classList.toggle('is-current', isLast && !reachedTarget);
+      const isAtCursor = i === state.cursor;
+      const isGhost = i > state.cursor;
+      const reachedTarget = isAtCursor && state.won;
+      li.classList.toggle('is-current', isAtCursor && !reachedTarget);
       li.classList.toggle('is-start', i === 0);
       li.classList.toggle('is-target', reachedTarget);
+      li.classList.toggle('is-ghost', isGhost);
 
       const move = MOVE[entry.type];
       const emoji = document.createElement('span');
@@ -220,17 +222,18 @@
       li.appendChild(word);
       li.appendChild(tag);
 
-      if (!isLast) {
-        const keepCount = i; // items[i] corresponds to keeping i history entries
+      if (!isAtCursor) {
         li.classList.add('is-rewindable');
         li.tabIndex = 0;
         li.setAttribute('role', 'button');
-        li.title = `Continue from ${up(entry.word)}`;
-        li.addEventListener('click', () => rewindTo(keepCount));
+        li.title = isGhost
+          ? `Step forward to ${up(entry.word)}`
+          : `Step back to ${up(entry.word)}`;
+        li.addEventListener('click', () => setCursor(i));
         li.addEventListener('keydown', (e) => {
           if (e.key === 'Enter' || e.key === ' ') {
             e.preventDefault();
-            rewindTo(keepCount);
+            setCursor(i);
           }
         });
       }
@@ -240,33 +243,52 @@
     els.history.parentElement.scrollTop = els.history.parentElement.scrollHeight;
   }
 
-  function rewindTo(keepCount) {
+  function setCursor(i) {
     if (submitting) return;
-    if (keepCount === state.history.length) return;
-    state.history = state.history.slice(0, keepCount);
-    state.won = false;
-    els.moveInput.disabled = false;
-    els.moveSubmit.disabled = false;
+    if (i === state.cursor) return;
+    state.cursor = i;
+    const atTarget = state.cursor > 0 && currentWord() === state.target;
+    state.won = atTarget;
     els.moveInput.value = '';
-    els.winCard.classList.add('hidden');
-    renderHistory();
-    renderCounters();
-    setStatus(`Continuing from ${up(currentWord())}.`, 'info');
-    els.moveInput.focus();
+    if (atTarget) {
+      els.moveInput.disabled = true;
+      els.moveSubmit.disabled = true;
+      renderHistory();
+      renderCounters();
+      renderWin();
+    } else {
+      els.moveInput.disabled = false;
+      els.moveSubmit.disabled = false;
+      els.winCard.classList.add('hidden');
+      renderHistory();
+      renderCounters();
+      setStatus(`Now at ${up(currentWord())}. Submit to take a new path.`, 'info');
+      els.moveInput.focus();
+    }
   }
 
   function renderCounters() {
-    const steps = state.history.filter((m) => MOVE[m.type].counts).length;
-    const freebies = state.history.length - steps;
+    const live = liveHistory();
+    const steps = live.filter((m) => MOVE[m.type].counts).length;
+    const freebies = live.length - steps;
     els.stepCount.textContent = String(steps);
     els.stepPlural.textContent = steps === 1 ? '' : 's';
     els.freeCount.textContent = String(freebies);
     els.freePlural.textContent = freebies === 1 ? '' : 's';
   }
 
+  // The cursor points into the items array [start, ...history]. cursor === 0
+  // means the player is back at the start; cursor === k means they are at
+  // history[k-1]. Anything in history past the cursor is "ghosted future" —
+  // shown but not part of the live path until the player submits a new move
+  // (which truncates the ghosted suffix and replaces it).
   function currentWord() {
-    if (!state.history.length) return state.start;
-    return state.history[state.history.length - 1].word;
+    if (state.cursor === 0) return state.start;
+    return state.history[state.cursor - 1].word;
+  }
+
+  function liveHistory() {
+    return state.history.slice(0, state.cursor);
   }
 
   // ---------- Sharing ----------
@@ -277,12 +299,13 @@
   }
 
   function shareText() {
-    const steps = state.history.filter((m) => MOVE[m.type].counts).length;
-    const frees = state.history.length - steps;
+    const live = liveHistory();
+    const steps = live.filter((m) => MOVE[m.type].counts).length;
+    const frees = live.length - steps;
     const lines = [];
     lines.push(`Likeness 🔗 ${up(state.start)} → ${up(state.target)}`);
     lines.push(`${steps} step${steps === 1 ? '' : 's'} · ${frees} free`);
-    const emojiTrail = state.history.map((m) => MOVE[m.type].emoji).join(' ');
+    const emojiTrail = live.map((m) => MOVE[m.type].emoji).join(' ');
     if (emojiTrail) lines.push(emojiTrail);
     lines.push('');
     lines.push(`Continue the chain → ${chainUrl(state.target)}`);
@@ -292,7 +315,7 @@
   function renderWin() {
     els.winStart.textContent = up(state.start);
     els.winTarget.textContent = up(state.target);
-    const steps = state.history.filter((m) => MOVE[m.type].counts).length;
+    const steps = liveHistory().filter((m) => MOVE[m.type].counts).length;
     els.winSteps.textContent = String(steps);
     els.winStepsPlural.textContent = steps === 1 ? '' : 's';
     els.sharePreview.textContent = shareText();
@@ -338,7 +361,7 @@
       shakeInput();
       return;
     }
-    if (state.history.some((m) => m.word === next)) {
+    if (liveHistory().some((m) => m.word === next)) {
       setStatus(`You've already used ${up(next)} in this chain.`, 'error');
       shakeInput();
       return;
@@ -370,7 +393,11 @@
     }
 
     const type = result.type;
+    // Submitting from a rewound cursor commits the new branch: drop any
+    // ghosted future, append the new move, advance the cursor to the tail.
+    state.history.length = state.cursor;
     state.history.push({ word: next, type });
+    state.cursor = state.history.length;
     els.moveInput.value = '';
     setStatus(`${MOVE[type].emoji} ${MOVE[type].label}${MOVE[type].counts ? '' : ' (free)'}`, 'success');
     renderHistory();
@@ -410,6 +437,7 @@
       start: s,
       target: t,
       history: [],
+      cursor: 0,
       won: false,
       gaveUp: false
     };
