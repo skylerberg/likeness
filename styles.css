@@ -236,33 +236,12 @@ button[disabled] {
 .history li.is-start .move-emoji { color: var(--good); }
 .history li.is-target .move-emoji { color: var(--accent); }
 
-.history li.is-rewindable {
-  cursor: pointer;
-  border-radius: 6px;
-  transition: background 0.12s, transform 0.05s, opacity 0.12s;
-}
-
-.history li.is-rewindable:hover {
-  background: var(--accent-soft);
-}
-
-.history li.is-rewindable:active {
-  transform: scale(0.99);
-}
-
-.history li.is-rewindable:focus-visible {
-  outline: 2px solid var(--accent);
-  outline-offset: 2px;
-  background: var(--accent-soft);
+.history li {
+  transition: opacity 0.18s ease;
 }
 
 .history li.is-ghost {
   opacity: 0.4;
-}
-
-.history li.is-ghost:hover,
-.history li.is-ghost:focus-visible {
-  opacity: 0.85;
 }
 
 .move-form {
@@ -329,6 +308,21 @@ button[disabled] {
   font-size: 13px;
   font-weight: 600;
   font-variant-numeric: tabular-nums;
+}
+
+.history-controls {
+  display: flex;
+  gap: 6px;
+}
+
+.icon-btn {
+  padding: 6px 10px;
+  font-size: 13px;
+  line-height: 1.2;
+}
+
+.icon-btn[disabled] {
+  opacity: 0.4;
 }
 
 .score-row .link-btn {
