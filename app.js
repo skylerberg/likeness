@@ -376,13 +376,13 @@
     renderHistory();
     renderCounters();
 
+    submitting = false;
     if (next === state.target) {
       state.won = true;
       els.moveInput.disabled = true;
       els.moveSubmit.disabled = true;
       renderWin();
     } else {
-      submitting = false;
       els.moveSubmit.disabled = false;
       els.moveInput.focus();
     }
@@ -413,6 +413,7 @@
       won: false,
       gaveUp: false
     };
+    submitting = false;
     els.moveInput.disabled = false;
     els.moveSubmit.disabled = false;
     els.moveInput.value = '';
