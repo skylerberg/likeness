@@ -10,6 +10,7 @@
     add:       { emoji: '➕', label: 'added',     counts: true  },
     remove:    { emoji: '➖', label: 'removed',   counts: true  },
     replace:   { emoji: '🔁', label: 'replaced',  counts: true  },
+    anagram:   { emoji: '🔀', label: 'anagram',   counts: false },
     synonym:   { emoji: '🔄', label: 'synonym',   counts: false },
     homophone: { emoji: '🔊', label: 'homophone', counts: false }
   };
@@ -74,6 +75,12 @@
       }
     }
     return diffs === 1;
+  }
+
+  function isAnagram(prev, next) {
+    if (prev.length !== next.length || prev === next) return false;
+    const sortLetters = (s) => s.split('').sort().join('');
+    return sortLetters(prev) === sortLetters(next);
   }
 
   // ---------- Datamuse wrapper ----------
@@ -153,6 +160,7 @@
     if (isOneAdd(prev, next)) return { type: 'add' };
     if (isOneRemove(prev, next)) return { type: 'remove' };
     if (isOneReplace(prev, next)) return { type: 'replace' };
+    if (isAnagram(prev, next)) return { type: 'anagram' };
     if (await areHomophones(prev, next)) return { type: 'homophone' };
     if (await areSynonyms(prev, next)) return { type: 'synonym' };
     return { type: null, reason: 'unrelated' };
@@ -344,7 +352,7 @@
       els.moveSubmit.disabled = false;
       const msg = result.reason === 'unknown'
         ? `${up(next)} isn't a word I recognise.`
-        : `${up(next)} isn't a ±1 letter, letter swap, synonym, or homophone of ${up(prev)}.`;
+        : `${up(next)} isn't a ±1 letter, letter swap, anagram, synonym, or homophone of ${up(prev)}.`;
       setStatus(msg, 'error');
       shakeInput();
       return;

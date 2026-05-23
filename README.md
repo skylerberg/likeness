@@ -5,6 +5,7 @@ A word-chain puzzle. Travel from a starting word to a target word, one move at a
 - **➕ Add a letter** anywhere in the previous word *(1 step)*
 - **➖ Delete a letter** anywhere in the previous word *(1 step)*
 - **🔁 Replace a letter** — swap any one letter for another *(1 step)*
+- **🔀 Anagram** — rearrange the same letters into a new word *(free move)*
 - **🔄 Synonym** — swap to a word that means the same thing *(free move)*
 - **🔊 Homophone** — swap to a word that sounds the same *(free move)*
 
