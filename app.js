@@ -200,9 +200,40 @@
       li.appendChild(emoji);
       li.appendChild(word);
       li.appendChild(tag);
+
+      if (!isLast) {
+        const keepCount = i; // items[i] corresponds to keeping i history entries
+        li.classList.add('is-rewindable');
+        li.tabIndex = 0;
+        li.setAttribute('role', 'button');
+        li.title = `Continue from ${up(entry.word)}`;
+        li.addEventListener('click', () => rewindTo(keepCount));
+        li.addEventListener('keydown', (e) => {
+          if (e.key === 'Enter' || e.key === ' ') {
+            e.preventDefault();
+            rewindTo(keepCount);
+          }
+        });
+      }
+
       els.history.appendChild(li);
     });
     els.history.parentElement.scrollTop = els.history.parentElement.scrollHeight;
+  }
+
+  function rewindTo(keepCount) {
+    if (submitting) return;
+    if (keepCount === state.history.length) return;
+    state.history = state.history.slice(0, keepCount);
+    state.won = false;
+    els.moveInput.disabled = false;
+    els.moveSubmit.disabled = false;
+    els.moveInput.value = '';
+    els.winCard.classList.add('hidden');
+    renderHistory();
+    renderCounters();
+    setStatus(`Continuing from ${up(currentWord())}.`, 'info');
+    els.moveInput.focus();
   }
 
   function renderCounters() {

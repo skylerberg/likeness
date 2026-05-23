@@ -236,6 +236,26 @@ button[disabled] {
 .history li.is-start .move-emoji { color: var(--good); }
 .history li.is-target .move-emoji { color: var(--accent); }
 
+.history li.is-rewindable {
+  cursor: pointer;
+  border-radius: 6px;
+  transition: background 0.12s, transform 0.05s;
+}
+
+.history li.is-rewindable:hover {
+  background: var(--accent-soft);
+}
+
+.history li.is-rewindable:active {
+  transform: scale(0.99);
+}
+
+.history li.is-rewindable:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 2px;
+  background: var(--accent-soft);
+}
+
 .move-form {
   display: flex;
   gap: 8px;
