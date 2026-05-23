@@ -265,6 +265,7 @@
     state.cursor = i;
     const atTarget = state.cursor > 0 && currentWord() === state.target;
     state.won = atTarget;
+    saveState();
     els.moveInput.value = '';
     if (atTarget) {
       els.moveInput.disabled = true;
@@ -414,6 +415,7 @@
     state.history.length = state.cursor;
     state.history.push({ word: next, type });
     state.cursor = state.history.length;
+    saveState();
     els.moveInput.value = '';
     setStatus(`${MOVE[type].emoji} ${MOVE[type].label}${MOVE[type].counts ? '' : ' (free)'}`, 'success');
     renderHistory();
@@ -439,6 +441,50 @@
     els.moveInput.classList.add('shake');
   }
 
+  // ---------- Persistence ----------
+  // Saved state lives in a single localStorage slot. On load, we restore the
+  // chain only if the saved (start, target) pair matches what we'd otherwise
+  // produce — so URL share links still take precedence, but a refresh while
+  // playing keeps you where you were.
+  const STORAGE_KEY = 'likeness:game:v1';
+
+  function saveState() {
+    try {
+      localStorage.setItem(STORAGE_KEY, JSON.stringify({
+        start: state.start,
+        target: state.target,
+        history: state.history,
+        cursor: state.cursor
+      }));
+    } catch { /* private mode, quota, disabled — game still works */ }
+  }
+
+  function loadState() {
+    try {
+      const raw = localStorage.getItem(STORAGE_KEY);
+      if (!raw) return null;
+      const parsed = JSON.parse(raw);
+      if (!parsed || typeof parsed !== 'object') return null;
+      if (typeof parsed.start !== 'string' || !parsed.start) return null;
+      if (typeof parsed.target !== 'string' || !parsed.target) return null;
+      if (!Array.isArray(parsed.history)) return null;
+      if (typeof parsed.cursor !== 'number') return null;
+      const historyOk = parsed.history.every((m) =>
+        m && typeof m === 'object'
+        && typeof m.word === 'string'
+        && typeof m.type === 'string'
+        && MOVE[m.type] && m.type !== 'start'
+      );
+      if (!historyOk) return null;
+      if (parsed.cursor < 0 || parsed.cursor > parsed.history.length) return null;
+      return parsed;
+    } catch { return null; }
+  }
+
+  function clearSavedState() {
+    try { localStorage.removeItem(STORAGE_KEY); } catch { /* noop */ }
+  }
+
   // ---------- New game / routing ----------
   function pickRandomDifferent(exclude) {
     const pool = (window.LIKENESS_WORDS || []).filter((w) => w !== exclude);
@@ -446,27 +492,56 @@
     return pool[Math.floor(Math.random() * pool.length)];
   }
 
-  function newGame({ start, target } = {}) {
-    const s = clean(start) || pickRandomDifferent('');
-    const t = clean(target) || pickRandomDifferent(s);
-    state = {
-      start: s,
-      target: t,
-      history: [],
-      cursor: 0,
-      won: false,
-      gaveUp: false
-    };
+  function newGame(opts = {}) {
+    const urlStart = clean(opts.start);
+    const urlTarget = clean(opts.target);
+    const saved = loadState();
+
+    let s, t, history = [], cursor = 0;
+
+    if (urlStart) {
+      s = urlStart;
+    } else if (saved) {
+      s = saved.start;
+    } else {
+      s = pickRandomDifferent('');
+    }
+
+    if (urlTarget) {
+      t = urlTarget;
+    } else if (saved && saved.start === s) {
+      t = saved.target;
+    } else {
+      t = pickRandomDifferent(s);
+    }
+
+    if (saved && saved.start === s && saved.target === t) {
+      history = saved.history;
+      cursor = saved.cursor;
+    }
+
+    state = { start: s, target: t, history, cursor, won: false, gaveUp: false };
+    state.won = state.cursor > 0 && currentWord() === state.target;
+
     submitting = false;
-    els.moveInput.disabled = false;
-    els.moveSubmit.disabled = false;
     els.moveInput.value = '';
-    els.winCard.classList.add('hidden');
     setStatus('');
     renderEndpoints();
     renderHistory();
     renderCounters();
-    els.moveInput.focus();
+
+    if (state.won) {
+      els.moveInput.disabled = true;
+      els.moveSubmit.disabled = true;
+      renderWin();
+    } else {
+      els.moveInput.disabled = false;
+      els.moveSubmit.disabled = false;
+      els.winCard.classList.add('hidden');
+      els.moveInput.focus();
+    }
+
+    saveState();
   }
 
   function readUrlParams() {
@@ -494,11 +569,13 @@
     els.giveUpBtn.addEventListener('click', () => {
       if (state.won) return;
       if (!confirm('Give up on this puzzle and start a new one?')) return;
+      clearSavedState();
       clearUrl();
       newGame();
     });
 
     els.newGameBtn.addEventListener('click', () => {
+      clearSavedState();
       clearUrl();
       newGame();
     });
