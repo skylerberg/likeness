@@ -1,0 +1,120 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+  <meta name="color-scheme" content="light dark" />
+  <title>Likeness — a word chain puzzle</title>
+  <meta name="description" content="Travel from a starting word to a target word by adding letters, deleting letters, swapping synonyms, or matching homophones. Then share your chain." />
+  <link rel="stylesheet" href="./styles.css" />
+  <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Ctext y='52' font-size='52'%3E🔗%3C/text%3E%3C/svg%3E" />
+</head>
+<body>
+  <main id="app">
+    <header class="topbar">
+      <h1 class="brand">Likeness</h1>
+      <div class="topbar-actions">
+        <button id="how-to-btn" class="ghost-btn" type="button" aria-label="How to play">How to play</button>
+        <button id="new-game-btn" class="ghost-btn" type="button" aria-label="Start a new game">New game</button>
+      </div>
+    </header>
+
+    <section class="puzzle-card" aria-label="Puzzle">
+      <div class="endpoints">
+        <div class="endpoint">
+          <div class="endpoint-label">Start</div>
+          <div id="start-word" class="endpoint-word" aria-live="polite">—</div>
+        </div>
+        <div class="endpoint-arrow" aria-hidden="true">→</div>
+        <div class="endpoint">
+          <div class="endpoint-label">Target</div>
+          <div id="target-word" class="endpoint-word" aria-live="polite">—</div>
+        </div>
+      </div>
+
+      <div class="metrics" aria-label="Closeness to target">
+        <div class="metric" title="How close in meaning the current word is to the target.">
+          <div class="metric-label">Meaning</div>
+          <div class="metric-bar"><div id="meaning-bar" class="metric-fill meaning"></div></div>
+          <div id="meaning-value" class="metric-value">—</div>
+        </div>
+        <div class="metric" title="How close in sound the current word is to the target.">
+          <div class="metric-label">Sound</div>
+          <div class="metric-bar"><div id="sound-bar" class="metric-fill sound"></div></div>
+          <div id="sound-value" class="metric-value">—</div>
+        </div>
+        <div class="metric" title="Letters that still need to change to spell the target.">
+          <div class="metric-label">Letters</div>
+          <div id="letters-value" class="metric-value letters">—</div>
+        </div>
+      </div>
+
+      <div class="history-wrap">
+        <ol id="history" class="history" aria-label="Move history"></ol>
+      </div>
+
+      <form id="move-form" class="move-form" autocomplete="off">
+        <label class="sr-only" for="move-input">Next word</label>
+        <input
+          id="move-input"
+          name="move"
+          type="text"
+          inputmode="text"
+          autocapitalize="characters"
+          autocorrect="off"
+          spellcheck="false"
+          placeholder="Type a next word…"
+          maxlength="32"
+          required
+        />
+        <button id="move-submit" type="submit">Submit</button>
+      </form>
+      <div id="status" class="status" role="status" aria-live="polite"></div>
+
+      <div class="score-row">
+        <span class="score-pill"><span id="step-count">0</span> step<span id="step-plural">s</span></span>
+        <span class="score-pill subtle"><span id="free-count">0</span> free move<span id="free-plural">s</span></span>
+        <button id="give-up-btn" class="link-btn" type="button">Give up</button>
+      </div>
+    </section>
+
+    <section id="win-card" class="win-card hidden" aria-label="Victory">
+      <h2 class="win-title">Chain complete! 🔗</h2>
+      <p class="win-text">
+        <span id="win-start">—</span> → <span id="win-target">—</span> in
+        <strong><span id="win-steps">0</span></strong> step<span id="win-steps-plural">s</span>
+      </p>
+      <pre id="share-preview" class="share-preview" aria-label="Shareable summary"></pre>
+      <div class="win-actions">
+        <button id="share-btn" type="button">Share</button>
+        <button id="continue-btn" type="button" class="ghost-btn">Continue the chain →</button>
+      </div>
+    </section>
+
+    <dialog id="how-to-dialog" class="dialog">
+      <article>
+        <h2>How to play</h2>
+        <p>Travel from the <b>Start</b> word to the <b>Target</b> word, one word at a time.</p>
+        <ul>
+          <li><b>➕ Add a letter</b> anywhere in the previous word. <i>(1 step)</i></li>
+          <li><b>➖ Delete a letter</b> anywhere in the previous word. <i>(1 step)</i></li>
+          <li><b>🔄 Synonym</b> — swap to a word that means the same thing. <i>(free)</i></li>
+          <li><b>🔊 Homophone</b> — swap to a word that sounds the same. <i>(free)</i></li>
+        </ul>
+        <p>The three meters show how close your latest word is in <b>meaning</b>, <b>sound</b>, and <b>spelling</b> to the target.</p>
+        <p>When you reach the target, share your chain — and the next player picks up where you left off.</p>
+        <p class="muted">Synonym and homophone judgements come from the <a href="https://www.datamuse.com/api/" rel="noopener" target="_blank">Datamuse</a> word API and may be liberal: if it groups them, the game accepts them.</p>
+        <form method="dialog"><button class="ghost-btn" type="submit">Got it</button></form>
+      </article>
+    </dialog>
+
+    <footer class="footer">
+      <span class="muted">Powered by <a href="https://www.datamuse.com/api/" rel="noopener" target="_blank">Datamuse</a>.</span>
+      <span class="muted">No accounts. No server. Just a chain of words.</span>
+    </footer>
+  </main>
+
+  <script src="./words.js"></script>
+  <script src="./app.js"></script>
+</body>
+</html>
