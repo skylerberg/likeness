@@ -19,11 +19,6 @@
   const els = {
     startWord: $('start-word'),
     targetWord: $('target-word'),
-    meaningBar: $('meaning-bar'),
-    meaningValue: $('meaning-value'),
-    soundBar: $('sound-bar'),
-    soundValue: $('sound-value'),
-    lettersValue: $('letters-value'),
     history: $('history'),
     moveForm: $('move-form'),
     moveInput: $('move-input'),
@@ -48,33 +43,12 @@
   };
 
   // ---------- State ----------
-  /** @type {{start:string,target:string,history:Array<{word:string,type:string}>,won:boolean,gaveUp:boolean,targetMl:any[]|null,targetSl:any[]|null}} */
+  /** @type {{start:string,target:string,history:Array<{word:string,type:string}>,won:boolean,gaveUp:boolean}} */
   let state;
 
   // ---------- Word utilities ----------
   function clean(word) {
     return (word || '').trim().toLowerCase().replace(/[^a-z]/g, '');
-  }
-
-  function lcsLen(a, b) {
-    const n = a.length, m = b.length;
-    if (!n || !m) return 0;
-    let prev = new Array(m + 1).fill(0);
-    let cur = new Array(m + 1).fill(0);
-    for (let i = 1; i <= n; i++) {
-      for (let j = 1; j <= m; j++) {
-        if (a[i - 1] === b[j - 1]) cur[j] = prev[j - 1] + 1;
-        else cur[j] = Math.max(prev[j], cur[j - 1]);
-      }
-      [prev, cur] = [cur, prev];
-      cur.fill(0);
-    }
-    return prev[m];
-  }
-
-  function letterDiff(a, b) {
-    const l = lcsLen(a, b);
-    return { remove: a.length - l, add: b.length - l };
   }
 
   function isOneAdd(prev, next) {
@@ -131,13 +105,7 @@
 
   async function meanLikeList(word) {
     try {
-      return await dm({ ml: word, max: 1000 });
-    } catch { return []; }
-  }
-
-  async function soundLikeList(word) {
-    try {
-      return await dm({ sl: word, max: 1000 });
+      return await dm({ ml: word, max: 200 });
     } catch { return []; }
   }
 
@@ -176,21 +144,7 @@
     return { type: null, reason: 'unrelated' };
   }
 
-  // ---------- Scoring helpers ----------
-  function rankScore(list, word) {
-    if (!list || !list.length) return 0;
-    const w = word.toLowerCase();
-    const idx = list.findIndex((r) => r.word && r.word.toLowerCase() === w);
-    if (idx === -1) return 0;
-    // Linear: top of the list ≈ 100, tail ≈ 1.
-    return Math.max(1, Math.round(100 * (1 - idx / list.length)));
-  }
-
   // ---------- Rendering ----------
-  function setBar(el, pct) {
-    el.style.width = `${Math.max(0, Math.min(100, pct))}%`;
-  }
-
   function setStatus(text, kind) {
     els.status.textContent = text || '';
     els.status.className = 'status' + (kind ? ` ${kind}` : '');
@@ -244,37 +198,6 @@
     els.stepPlural.textContent = steps === 1 ? '' : 's';
     els.freeCount.textContent = String(freebies);
     els.freePlural.textContent = freebies === 1 ? '' : 's';
-  }
-
-  async function refreshMetrics() {
-    const current = currentWord();
-    const target = state.target;
-
-    const diff = letterDiff(current, target);
-    if (current === target) {
-      els.lettersValue.textContent = 'match';
-    } else {
-      els.lettersValue.textContent = `+${diff.add} / −${diff.remove}`;
-    }
-
-    if (current === target) {
-      setBar(els.meaningBar, 100);
-      setBar(els.soundBar, 100);
-      els.meaningValue.textContent = '100%';
-      els.soundValue.textContent = '100%';
-      return;
-    }
-
-    // Lazily fetch and cache target reference lists.
-    if (!state.targetMl) state.targetMl = await meanLikeList(target);
-    if (!state.targetSl) state.targetSl = await soundLikeList(target);
-
-    const meaning = rankScore(state.targetMl, current);
-    const sound = rankScore(state.targetSl, current);
-    setBar(els.meaningBar, meaning);
-    setBar(els.soundBar, sound);
-    els.meaningValue.textContent = `${meaning}%`;
-    els.soundValue.textContent = `${sound}%`;
   }
 
   function currentWord() {
@@ -393,10 +316,8 @@
       state.won = true;
       els.moveInput.disabled = true;
       els.moveSubmit.disabled = true;
-      await refreshMetrics();
       renderWin();
     } else {
-      await refreshMetrics();
       submitting = false;
       els.moveSubmit.disabled = false;
       els.moveInput.focus();
@@ -426,9 +347,7 @@
       target: t,
       history: [],
       won: false,
-      gaveUp: false,
-      targetMl: null,
-      targetSl: null
+      gaveUp: false
     };
     els.moveInput.disabled = false;
     els.moveSubmit.disabled = false;
@@ -438,7 +357,6 @@
     renderEndpoints();
     renderHistory();
     renderCounters();
-    refreshMetrics();
     els.moveInput.focus();
   }
 

@@ -32,23 +32,6 @@
         </div>
       </div>
 
-      <div class="metrics" aria-label="Closeness to target">
-        <div class="metric" title="How close in meaning the current word is to the target.">
-          <div class="metric-label">Meaning</div>
-          <div class="metric-bar"><div id="meaning-bar" class="metric-fill meaning"></div></div>
-          <div id="meaning-value" class="metric-value">—</div>
-        </div>
-        <div class="metric" title="How close in sound the current word is to the target.">
-          <div class="metric-label">Sound</div>
-          <div class="metric-bar"><div id="sound-bar" class="metric-fill sound"></div></div>
-          <div id="sound-value" class="metric-value">—</div>
-        </div>
-        <div class="metric" title="Letters that still need to change to spell the target.">
-          <div class="metric-label">Letters</div>
-          <div id="letters-value" class="metric-value letters">—</div>
-        </div>
-      </div>
-
       <div class="history-wrap">
         <ol id="history" class="history" aria-label="Move history"></ol>
       </div>
@@ -101,7 +84,6 @@
           <li><b>🔄 Synonym</b> — swap to a word that means the same thing. <i>(free)</i></li>
           <li><b>🔊 Homophone</b> — swap to a word that sounds the same. <i>(free)</i></li>
         </ul>
-        <p>The three meters show how close your latest word is in <b>meaning</b>, <b>sound</b>, and <b>spelling</b> to the target.</p>
         <p>When you reach the target, share your chain — and the next player picks up where you left off.</p>
         <p class="muted">Synonym and homophone judgements come from the <a href="https://www.datamuse.com/api/" rel="noopener" target="_blank">Datamuse</a> word API and may be liberal: if it groups them, the game accepts them.</p>
         <form method="dialog"><button class="ghost-btn" type="submit">Got it</button></form>
