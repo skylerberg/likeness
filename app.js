@@ -102,10 +102,21 @@
     }
   }
 
+  // A word counts as "real" only if Datamuse returns it as an exact spelling
+  // match AND tags it with a content part of speech (noun, verb, adjective,
+  // or adverb). Datamuse's `sp` endpoint alone is a loose spelling fuzzer
+  // that lets through nonsense strings and tag-less proper-noun entries; the
+  // POS check rejects those without bundling a dictionary.
+  const REAL_POS_TAGS = new Set(['n', 'v', 'adj', 'adv']);
+
   async function isRealWord(word) {
     try {
-      const res = await dm({ sp: word, max: 1 });
-      return Array.isArray(res) && res.length > 0 && res[0].word.toLowerCase() === word.toLowerCase();
+      const res = await dm({ sp: word, max: 1, md: 'p' });
+      if (!Array.isArray(res) || res.length === 0) return false;
+      const top = res[0];
+      if (!top.word || top.word.toLowerCase() !== word.toLowerCase()) return false;
+      const tags = Array.isArray(top.tags) ? top.tags : [];
+      return tags.some((t) => REAL_POS_TAGS.has(t));
     } catch {
       return false;
     }
