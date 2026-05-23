@@ -1,16 +1,17 @@
 # Likeness
 
-A word-chain puzzle. Travel from a starting word to a target word, one move at a time:
+A word-chain puzzle. Travel from a starting word to a target word, one move at a time. Every move
+costs one step — try to get there in as few as you can.
 
-- **➕ Add a letter** anywhere in the previous word *(1 step)*
-- **➖ Delete a letter** anywhere in the previous word *(1 step)*
-- **🔁 Replace a letter** — swap any one letter for another *(1 step)*
-- **🔀 Anagram** — rearrange the same letters into a new word *(free move)*
-- **🔄 Synonym** — swap to a word that means the same thing *(free move)*
-- **🔊 Homophone** — swap to a word that sounds the same *(free move)*
+- **➕ Add a letter** anywhere in the previous word
+- **➖ Delete a letter** anywhere in the previous word
+- **🔁 Replace a letter** — swap any one letter for another
+- **🔀 Anagram** — rearrange the same letters into a new word
+- **🔄 Synonym** — swap to a word that means the same thing
+- **🔊 Homophone** — swap to a word that sounds the same
 
-Reach the target in as few steps as possible. When you finish, share an emoji trail of your journey
-and pass your target word to the next player as their new start — the chain keeps going.
+When you finish, share an emoji trail of your journey and pass your target word to the next player
+as their new start — the chain keeps going.
 
 ## Stack
 

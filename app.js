@@ -6,13 +6,13 @@
   const SHARE_URL_BASE = location.origin + location.pathname;
 
   const MOVE = {
-    start:     { emoji: '🏁', label: 'start',     counts: false },
-    add:       { emoji: '➕', label: 'added',     counts: true  },
-    remove:    { emoji: '➖', label: 'removed',   counts: true  },
-    replace:   { emoji: '🔁', label: 'replaced',  counts: true  },
-    anagram:   { emoji: '🔀', label: 'anagram',   counts: false },
-    synonym:   { emoji: '🔄', label: 'synonym',   counts: false },
-    homophone: { emoji: '🔊', label: 'homophone', counts: false }
+    start:     { emoji: '🏁', label: 'start'     },
+    add:       { emoji: '➕', label: 'added'     },
+    remove:    { emoji: '➖', label: 'removed'   },
+    replace:   { emoji: '🔁', label: 'replaced'  },
+    anagram:   { emoji: '🔀', label: 'anagram'   },
+    synonym:   { emoji: '🔄', label: 'synonym'   },
+    homophone: { emoji: '🔊', label: 'homophone' }
   };
 
   // ---------- DOM helpers ----------
@@ -28,8 +28,6 @@
     status: $('status'),
     stepCount: $('step-count'),
     stepPlural: $('step-plural'),
-    freeCount: $('free-count'),
-    freePlural: $('free-plural'),
     giveUpBtn: $('give-up-btn'),
     howToBtn: $('how-to-btn'),
     newGameBtn: $('new-game-btn'),
@@ -232,7 +230,7 @@
       tag.className = 'move-tag';
       if (entry.type === 'start') tag.textContent = 'start';
       else if (reachedTarget) tag.textContent = 'target!';
-      else tag.textContent = move.label + (move.counts ? '' : ' · free');
+      else tag.textContent = move.label;
 
       li.appendChild(emoji);
       li.appendChild(word);
@@ -285,13 +283,9 @@
   }
 
   function renderCounters() {
-    const live = liveHistory();
-    const steps = live.filter((m) => MOVE[m.type].counts).length;
-    const freebies = live.length - steps;
+    const steps = liveHistory().length;
     els.stepCount.textContent = String(steps);
     els.stepPlural.textContent = steps === 1 ? '' : 's';
-    els.freeCount.textContent = String(freebies);
-    els.freePlural.textContent = freebies === 1 ? '' : 's';
   }
 
   // The cursor points into the items array [start, ...history]. cursor === 0
@@ -317,11 +311,10 @@
 
   function shareText() {
     const live = liveHistory();
-    const steps = live.filter((m) => MOVE[m.type].counts).length;
-    const frees = live.length - steps;
+    const steps = live.length;
     const lines = [];
     lines.push(`Likeness 🔗 ${up(state.start)} → ${up(state.target)}`);
-    lines.push(`${steps} step${steps === 1 ? '' : 's'} · ${frees} free`);
+    lines.push(`${steps} step${steps === 1 ? '' : 's'}`);
     const emojiTrail = live.map((m) => MOVE[m.type].emoji).join(' ');
     if (emojiTrail) lines.push(emojiTrail);
     lines.push('');
@@ -332,7 +325,7 @@
   function renderWin() {
     els.winStart.textContent = up(state.start);
     els.winTarget.textContent = up(state.target);
-    const steps = liveHistory().filter((m) => MOVE[m.type].counts).length;
+    const steps = liveHistory().length;
     els.winSteps.textContent = String(steps);
     els.winStepsPlural.textContent = steps === 1 ? '' : 's';
     els.sharePreview.textContent = shareText();
@@ -417,7 +410,7 @@
     state.cursor = state.history.length;
     saveState();
     els.moveInput.value = '';
-    setStatus(`${MOVE[type].emoji} ${MOVE[type].label}${MOVE[type].counts ? '' : ' (free)'}`, 'success');
+    setStatus(`${MOVE[type].emoji} ${MOVE[type].label}`, 'success');
     renderHistory();
     renderCounters();
 
