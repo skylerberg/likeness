@@ -27,6 +27,9 @@ jobs:
       - name: Configure Pages
         uses: actions/configure-pages@v5
 
+      - name: Cache-bust asset URLs
+        run: sed -i "s|?v=dev|?v=${GITHUB_SHA::7}|g" index.html
+
       - name: Upload site
         uses: actions/upload-pages-artifact@v3
         with:
