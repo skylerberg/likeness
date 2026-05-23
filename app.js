@@ -103,20 +103,36 @@
   }
 
   // A word counts as "real" only if Datamuse returns it as an exact spelling
-  // match AND tags it with a content part of speech (noun, verb, adjective,
-  // or adverb). Datamuse's `sp` endpoint alone is a loose spelling fuzzer
-  // that lets through nonsense strings and tag-less proper-noun entries; the
-  // POS check rejects those without bundling a dictionary.
+  // match AND tags it with a content part of speech (n/v/adj/adv) AND has a
+  // frequency entry above a small minimum. The POS check alone leaks proper-
+  // noun-style entries like surnames (still tagged "n") that aren't English
+  // words for game purposes. Requiring an f:<freq> tag with a non-trivial
+  // value filters those out: real English words appear in the reference
+  // corpus and carry a usable frequency; obscure dictionary cruft typically
+  // doesn't.
   const REAL_POS_TAGS = new Set(['n', 'v', 'adj', 'adv']);
+  // Per-million-words. 0.05 = roughly 1 occurrence per 20 million words —
+  // permissive enough for unusual-but-real words ("lummox", "snog") while
+  // still rejecting the long tail of proper nouns and odd entries.
+  const MIN_WORD_FREQUENCY = 0.05;
+
+  function frequencyFromTags(tags) {
+    if (!Array.isArray(tags)) return 0;
+    const f = tags.find((t) => typeof t === 'string' && t.startsWith('f:'));
+    if (!f) return 0;
+    const n = parseFloat(f.slice(2));
+    return Number.isFinite(n) ? n : 0;
+  }
 
   async function isRealWord(word) {
     try {
-      const res = await dm({ sp: word, max: 1, md: 'p' });
+      const res = await dm({ sp: word, max: 1, md: 'p,f' });
       if (!Array.isArray(res) || res.length === 0) return false;
       const top = res[0];
       if (!top.word || top.word.toLowerCase() !== word.toLowerCase()) return false;
       const tags = Array.isArray(top.tags) ? top.tags : [];
-      return tags.some((t) => REAL_POS_TAGS.has(t));
+      if (!tags.some((t) => REAL_POS_TAGS.has(t))) return false;
+      return frequencyFromTags(tags) >= MIN_WORD_FREQUENCY;
     } catch {
       return false;
     }
