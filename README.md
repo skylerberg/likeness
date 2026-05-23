@@ -13,7 +13,7 @@ and pass your target word to the next player as their new start — the chain ke
 ## Stack
 
 - Pure static site: `index.html`, `styles.css`, `app.js`, `words.js`. No build step.
-- Synonyms, homophones, and meaning/sound similarity come from the
+- Synonyms and homophones come from the
   [Datamuse API](https://www.datamuse.com/api/) (no API key required).
 - Deployed via GitHub Pages from the `main` branch using
   `.github/workflows/pages.yml`.

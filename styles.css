@@ -13,8 +13,6 @@
   --border: #e7e1d2;
   --shadow: 0 1px 2px rgba(0, 0, 0, 0.04), 0 8px 24px rgba(0, 0, 0, 0.06);
   --meaning: #2563eb;
-  --sound: #9333ea;
-  --letters: #c2410c;
   --radius: 14px;
   --font: ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
   --mono: ui-monospace, SFMono-Regular, "SF Mono", Menlo, Consolas, monospace;
@@ -177,63 +175,6 @@ button[disabled] {
   color: var(--fg-muted);
   font-size: 20px;
   padding: 0 4px;
-}
-
-.metrics {
-  display: grid;
-  grid-template-columns: 1fr 1fr;
-  gap: 12px;
-}
-
-.metric {
-  background: var(--bg-elev);
-  border: 1px solid var(--border);
-  border-radius: 10px;
-  padding: 10px 12px;
-  display: flex;
-  flex-direction: column;
-  gap: 6px;
-}
-
-.metric:nth-child(3) {
-  grid-column: span 2;
-}
-
-.metric-label {
-  font-size: 11px;
-  text-transform: uppercase;
-  letter-spacing: 1px;
-  color: var(--fg-muted);
-}
-
-.metric-bar {
-  height: 8px;
-  background: var(--border);
-  border-radius: 999px;
-  overflow: hidden;
-}
-
-.metric-fill {
-  height: 100%;
-  width: 0%;
-  border-radius: 999px;
-  transition: width 0.4s ease;
-}
-
-.metric-fill.meaning { background: var(--meaning); }
-.metric-fill.sound { background: var(--sound); }
-
-.metric-value {
-  font-family: var(--mono);
-  font-size: 13px;
-  color: var(--fg);
-  font-variant-numeric: tabular-nums;
-}
-
-.metric-value.letters {
-  font-family: var(--mono);
-  font-size: 16px;
-  font-weight: 600;
 }
 
 .history-wrap {
@@ -498,7 +439,5 @@ button[disabled] {
 
 @media (max-width: 480px) {
   .endpoint-arrow { font-size: 16px; }
-  .metrics { grid-template-columns: 1fr; }
-  .metric:nth-child(3) { grid-column: span 1; }
   .move-form input { font-size: 16px; }
 }
