@@ -9,6 +9,7 @@
     start:     { emoji: '🏁', label: 'start',     counts: false },
     add:       { emoji: '➕', label: 'added',     counts: true  },
     remove:    { emoji: '➖', label: 'removed',   counts: true  },
+    replace:   { emoji: '🔁', label: 'replaced',  counts: true  },
     synonym:   { emoji: '🔄', label: 'synonym',   counts: false },
     homophone: { emoji: '🔊', label: 'homophone', counts: false }
   };
@@ -61,6 +62,18 @@
 
   function isOneRemove(prev, next) {
     return isOneAdd(next, prev);
+  }
+
+  function isOneReplace(prev, next) {
+    if (prev.length !== next.length || prev === next) return false;
+    let diffs = 0;
+    for (let i = 0; i < prev.length; i++) {
+      if (prev[i] !== next[i]) {
+        diffs++;
+        if (diffs > 1) return false;
+      }
+    }
+    return diffs === 1;
   }
 
   // ---------- Datamuse wrapper ----------
@@ -139,6 +152,7 @@
     if (!(await isRealWord(next))) return { type: null, reason: 'unknown' };
     if (isOneAdd(prev, next)) return { type: 'add' };
     if (isOneRemove(prev, next)) return { type: 'remove' };
+    if (isOneReplace(prev, next)) return { type: 'replace' };
     if (await areHomophones(prev, next)) return { type: 'homophone' };
     if (await areSynonyms(prev, next)) return { type: 'synonym' };
     return { type: null, reason: 'unrelated' };
@@ -299,7 +313,7 @@
       els.moveSubmit.disabled = false;
       const msg = result.reason === 'unknown'
         ? `${up(next)} isn't a word I recognise.`
-        : `${up(next)} isn't a ±1 letter, synonym, or homophone of ${up(prev)}.`;
+        : `${up(next)} isn't a ±1 letter, letter swap, synonym, or homophone of ${up(prev)}.`;
       setStatus(msg, 'error');
       shakeInput();
       return;
