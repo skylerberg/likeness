@@ -331,11 +331,6 @@ button[disabled] {
   font-variant-numeric: tabular-nums;
 }
 
-.score-pill.subtle {
-  background: var(--bg-elev);
-  color: var(--fg-muted);
-}
-
 .score-row .link-btn {
   margin-left: auto;
 }
